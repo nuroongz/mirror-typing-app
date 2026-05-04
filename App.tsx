@@ -1,4 +1,4 @@
-// 앱 진입점 - 폰트 로딩과 SplashScreen 핸들링
+// 앱 진입점 - 폰트 로딩, 스플래시 핸들링, 설정/네비게이션 Provider 조립
 import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -9,10 +9,10 @@ import {
   NotoSansKR_500Medium,
   NotoSansKR_700Bold,
 } from '@expo-google-fonts/noto-sans-kr';
-import { HomeScreen } from './src/screens/HomeScreen';
 import { colors } from './src/theme/colors';
+import { SettingsProvider } from './src/context/SettingsContext';
+import { AppNavigator } from './src/navigation/AppNavigator';
 
-// 폰트 로딩 동안 스플래시 유지
 SplashScreen.preventAutoHideAsync().catch(() => {
   // 이미 숨겨졌어도 무시
 });
@@ -43,7 +43,9 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safe} onLayout={onLayoutRootView}>
       <StatusBar style="light" />
-      <HomeScreen />
+      <SettingsProvider>
+        <AppNavigator />
+      </SettingsProvider>
     </SafeAreaView>
   );
 }

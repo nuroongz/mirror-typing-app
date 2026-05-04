@@ -4,15 +4,24 @@
 화면을 거울에 비추거나, PDF로 출력해 거울 앞에 두면 정상 글씨로 읽을 수 있습니다.
 좌뇌 활성화 · 공간 인지 능력 · 집중력 향상을 목적으로 합니다.
 
-## ✅ 현재 상태 — Phase 1 (MVP)
+## ✅ 현재 상태 — Phase 2
 
+**Phase 1 (MVP)**
 - [x] HomeScreen 미러 타이핑 에디터
 - [x] 기본 미러링 동작 (`transform: scaleX(-1)`)
 - [x] 폰트 크기 조절 슬라이더 (20 ~ 60 px)
 - [x] PDF 출력 / 공유 기능 (`expo-print` + `expo-sharing`)
-- [ ] 분할 모드 / 완전 미러 모드 (Phase 2)
-- [ ] 온보딩 · 설정 화면 (Phase 2)
-- [ ] 뇌 훈련 세션 / 통계 (Phase 3)
+
+**Phase 2**
+- [x] 3가지 모드 — 미러 / 분할 / 완전미러 (`ModeTabs`)
+- [x] 온보딩 3슬라이드 (가로 페이징)
+- [x] 설정 화면 — 폰트 크기, 미러 배경/텍스트 색상, 햅틱, 온보딩 다시 보기, 초기화
+- [x] AsyncStorage 자동 영속화
+- [x] 라우트 fade transition (300ms)
+
+**다음 (Phase 3)**
+- [ ] 뇌 훈련 세션 (레벨 1~4 한글 제시어, 30/60초 타이머)
+- [ ] 통계 대시보드 (정확도 · WPM · 누적 시간)
 
 ## 🛠 기술 스택
 
@@ -91,15 +100,27 @@ mirror-typing-app/
 ├── assets/                  # 아이콘 · 스플래시 (Phase 4 에서 추가)
 └── src/
     ├── screens/
-    │   └── HomeScreen.tsx   # 메인 미러 타이핑 에디터
+    │   ├── HomeScreen.tsx          # 미러 타이핑 에디터 (3모드)
+    │   ├── OnboardingScreen.tsx    # 첫 실행 3슬라이드
+    │   └── SettingsScreen.tsx      # 설정 (폰트/색상/햅틱/리셋)
+    ├── components/
+    │   ├── MirrorView.tsx          # 좌우 반전 표시 박스
+    │   ├── NormalView.tsx          # 정상 방향 표시 박스 (분할 모드)
+    │   ├── ModeTabs.tsx            # 미러/분할/완전미러 탭
+    │   └── TopBar.tsx              # 상단바
+    ├── context/
+    │   └── SettingsContext.tsx     # 전역 설정 + AsyncStorage 영속화
+    ├── navigation/
+    │   └── AppNavigator.tsx        # 상태 기반 라우터 + fade transition
+    ├── storage/
+    │   └── keys.ts                 # AsyncStorage 키 모음
     ├── theme/
-    │   ├── colors.ts        # 컬러 팔레트
-    │   └── typography.ts    # 폰트/사이즈 토큰
+    │   ├── colors.ts
+    │   └── typography.ts
     ├── utils/
-    │   └── print.ts         # PDF 출력 유틸 (HTML → PDF → Share)
-    ├── components/          # (Phase 2~ 에서 사용)
-    ├── hooks/               # (Phase 2~ 에서 사용)
-    └── data/                # 훈련 단어 목록 (Phase 3)
+    │   └── print.ts                # PDF 출력 유틸
+    ├── hooks/                      # (Phase 3+ 에서 사용)
+    └── data/                       # 훈련 단어 목록 (Phase 3)
 ```
 
 ## 🎨 컬러 팔레트
