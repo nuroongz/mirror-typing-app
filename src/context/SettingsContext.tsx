@@ -16,6 +16,34 @@ import { fontSize as fontSizeTokens } from '../theme/typography';
 // 미러 디스플레이 표시 모드
 export type MirrorMode = 'mirror' | 'split' | 'fullMirror';
 
+// 훈련 언어
+export type Language = 'ko' | 'en' | 'num' | 'mix';
+export const LANGUAGE_OPTIONS: Record<Language, { label: string; hint: string }> = {
+  ko: { label: '한글', hint: '한국어 단어/문장' },
+  en: { label: '영어', hint: 'English words' },
+  num: { label: '숫자', hint: '0~9, 날짜/숫자열' },
+  mix: { label: '혼합', hint: '세 언어를 무작위로' },
+};
+
+// 화면 방향 잠금
+export type OrientationLock = 'auto' | 'portrait' | 'landscape';
+export const ORIENTATION_OPTIONS: Record<OrientationLock, string> = {
+  auto: '자동',
+  portrait: '세로',
+  landscape: '가로',
+};
+
+// 알림 시간 프리셋 (HH:mm)
+export const NOTIFICATION_TIME_PRESETS: ReadonlyArray<string> = [
+  '08:00',
+  '09:00',
+  '12:00',
+  '18:00',
+  '20:00',
+  '21:00',
+  '22:00',
+];
+
 // 미러 배경 옵션 - 키와 실제 컬러 매핑
 export const MIRROR_BG_OPTIONS = {
   dark: { label: '딥블루', color: '#1a1a2e' },
@@ -40,6 +68,10 @@ export type Settings = {
   mirrorBg: MirrorBgKey;
   mirrorText: MirrorTextKey;
   hapticEnabled: boolean;
+  language: Language;
+  orientationLock: OrientationLock;
+  notificationEnabled: boolean;
+  notificationTime: string; // 'HH:mm'
 };
 
 const DEFAULT_SETTINGS: Settings = {
@@ -48,6 +80,10 @@ const DEFAULT_SETTINGS: Settings = {
   mirrorBg: 'dark',
   mirrorText: 'cyan',
   hapticEnabled: true,
+  language: 'ko',
+  orientationLock: 'portrait',
+  notificationEnabled: false,
+  notificationTime: '20:00',
 };
 
 type SettingsContextValue = {

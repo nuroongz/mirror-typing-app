@@ -11,6 +11,7 @@ import {
 } from '@expo-google-fonts/noto-sans-kr';
 import { colors } from './src/theme/colors';
 import { SettingsProvider } from './src/context/SettingsContext';
+import { SettingsBridge } from './src/context/SettingsBridge';
 import { StatsProvider } from './src/context/StatsContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
@@ -45,6 +46,7 @@ export default function App() {
     <SafeAreaView style={styles.safe} onLayout={onLayoutRootView}>
       <StatusBar style="light" />
       <SettingsProvider>
+        <SettingsBridge />
         <StatsProvider>
           <AppNavigator />
         </StatsProvider>

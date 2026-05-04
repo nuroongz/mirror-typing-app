@@ -34,6 +34,13 @@
 - [x] 모든 버튼 press scale(0.95) 통일
 - [x] 스토어 배포 — `eas.json` 빌드 프로필, `app.json` 메타데이터·권한, `.easignore`
 
+**Phase 4.5 — 설정 확장**
+- [x] **언어 설정** — 한글 / 영어 / 숫자 / 혼합 (각 100개씩, 혼합은 300개 풀)
+- [x] **화면 방향 고정** — 자동 / 세로 / 가로 (`expo-screen-orientation`)
+- [x] **훈련 알림** — 매일 지정 시간 반복 알림 (`expo-notifications`, 7개 프리셋 시간)
+- [x] 설정 변경이 즉시 시스템에 반영되는 `SettingsBridge`
+- [x] 알림 권한 거부 시 토글 자동 OFF + 안내
+
 ## 🛠 기술 스택
 
 - Expo (React Native) — iOS / Android / Web
@@ -124,6 +131,7 @@ mirror-typing-app/
     │   └── TopBar.tsx              # 상단바
     ├── context/
     │   ├── SettingsContext.tsx     # 전역 설정 + AsyncStorage 영속화
+    │   ├── SettingsBridge.tsx      # 설정값을 시스템에 반영 (orientation/notification)
     │   └── StatsContext.tsx        # 세션 기록 + 누적 통계
     ├── navigation/
     │   └── AppNavigator.tsx        # 상태 기반 라우터 + fade transition
@@ -133,12 +141,14 @@ mirror-typing-app/
     │   ├── colors.ts
     │   └── typography.ts
     ├── utils/
-    │   └── print.ts                # PDF 출력 유틸
+    │   ├── print.ts                # PDF 출력 유틸
+    │   ├── notifications.ts        # 매일 훈련 알림 스케줄
+    │   └── orientation.ts          # 화면 방향 잠금
     ├── hooks/
     │   ├── useHaptic.ts            # 설정 연동 햅틱 트리거
     │   └── useCountUp.ts           # 숫자 카운트업 애니메이션
     └── data/
-        └── words.ts                # 한글 제시어 100개 (레벨 1~4)
+        └── words.ts                # 다국어 제시어 (한글/영어/숫자 각 100 + 혼합)
 ```
 
 ## 🎨 컬러 팔레트

@@ -25,9 +25,10 @@ import {
   LEVEL_HINTS,
   LEVEL_LABELS,
   TrainingLevel,
-  WORDS_BY_LEVEL,
+  getPrompts,
   shuffle,
 } from '../data/words';
+import { LANGUAGE_OPTIONS } from '../context/SettingsContext';
 import { TimerOption, useStats } from '../context/StatsContext';
 import { useHaptic } from '../hooks/useHaptic';
 
@@ -112,7 +113,7 @@ export const TrainingScreen: React.FC = () => {
   }, [now, phase, timer, finalize]);
 
   const startSession = useCallback(() => {
-    const all = WORDS_BY_LEVEL[level];
+    const all = getPrompts(settings.language, level);
     const list = shuffle(all).slice(0, PROMPTS_PER_SESSION_LIMIT);
     setPrompts(list);
     setIndex(0);
@@ -125,7 +126,7 @@ export const TrainingScreen: React.FC = () => {
     setNow(Date.now());
     setPhase('play');
     haptic('medium');
-  }, [level, haptic]);
+  }, [level, settings.language, haptic]);
 
   // 한 프롬프트 완료/스킵 처리 (햅틱 동반)
   const advance = useCallback(
@@ -183,7 +184,10 @@ export const TrainingScreen: React.FC = () => {
         <TopBar title="뇌 훈련 세션" leftLabel="← 뒤로" onLeftPress={() => navigate('home')} />
         <ScrollView contentContainerStyle={styles.setupContent}>
           <Text style={styles.setupHeading}>🧠 훈련 설정</Text>
-          <Text style={styles.setupSub}>레벨과 시간을 선택하세요</Text>
+          <Text style={styles.setupSub}>
+            언어 · {LANGUAGE_OPTIONS[settings.language].label}
+            {'  '}|{'  '}레벨과 시간을 선택하세요
+          </Text>
 
           <Text style={styles.sectionTitle}>레벨</Text>
           <View style={styles.optionsCol}>

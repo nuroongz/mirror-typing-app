@@ -16,10 +16,15 @@ import { colors } from '../theme/colors';
 import { fontSize as fontSizeTokens, fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import {
+  LANGUAGE_OPTIONS,
+  Language,
   MIRROR_BG_OPTIONS,
   MIRROR_TEXT_OPTIONS,
   MirrorBgKey,
   MirrorTextKey,
+  NOTIFICATION_TIME_PRESETS,
+  ORIENTATION_OPTIONS,
+  OrientationLock,
   useSettings,
 } from '../context/SettingsContext';
 import { useNavigator } from '../navigation/AppNavigator';
@@ -128,11 +133,99 @@ export const SettingsScreen: React.FC = () => {
           </Row>
         </Section>
 
-        {/* 향후 활성화 예정 */}
-        <Section title="추가 옵션 (준비 중)">
-          <DisabledRow label="언어 (한글/영어/숫자/혼합)" hint="Phase 3 훈련 모드와 함께 활성화" />
-          <DisabledRow label="화면 방향 고정" hint="가로/세로 잠금" />
-          <DisabledRow label="훈련 알림" hint="매일 알림으로 훈련 유도" />
+        {/* 훈련 언어 */}
+        <Section title="훈련">
+          <Row label="언어">
+            <View style={styles.chipsRow}>
+              {(Object.keys(LANGUAGE_OPTIONS) as Language[]).map((k) => {
+                const opt = LANGUAGE_OPTIONS[k];
+                const active = settings.language === k;
+                return (
+                  <Pressable
+                    key={k}
+                    onPress={() => update({ language: k })}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      {
+                        backgroundColor: colors.buttonBg,
+                        borderColor: active ? colors.accent : colors.border,
+                      },
+                      pressed && styles.chipPressed,
+                    ]}
+                  >
+                    <Text style={styles.chipText}>{opt.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={styles.subHint}>
+              {LANGUAGE_OPTIONS[settings.language].hint}
+            </Text>
+          </Row>
+        </Section>
+
+        {/* 화면 방향 */}
+        <Section title="화면">
+          <Row label="화면 방향 고정">
+            <View style={styles.chipsRow}>
+              {(Object.keys(ORIENTATION_OPTIONS) as OrientationLock[]).map((k) => {
+                const active = settings.orientationLock === k;
+                return (
+                  <Pressable
+                    key={k}
+                    onPress={() => update({ orientationLock: k })}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      {
+                        backgroundColor: colors.buttonBg,
+                        borderColor: active ? colors.accent : colors.border,
+                      },
+                      pressed && styles.chipPressed,
+                    ]}
+                  >
+                    <Text style={styles.chipText}>{ORIENTATION_OPTIONS[k]}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Row>
+        </Section>
+
+        {/* 훈련 알림 */}
+        <Section title="알림">
+          <Row label="훈련 알림">
+            <Switch
+              value={settings.notificationEnabled}
+              onValueChange={(v) => update({ notificationEnabled: v })}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={colors.normalText}
+            />
+          </Row>
+          <Row label="알림 시간" value={settings.notificationTime}>
+            <View style={styles.chipsRow}>
+              {NOTIFICATION_TIME_PRESETS.map((t) => {
+                const active = settings.notificationTime === t;
+                return (
+                  <Pressable
+                    key={t}
+                    onPress={() => update({ notificationTime: t })}
+                    disabled={!settings.notificationEnabled}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      {
+                        backgroundColor: colors.buttonBg,
+                        borderColor: active ? colors.accent : colors.border,
+                      },
+                      pressed && styles.chipPressed,
+                      !settings.notificationEnabled && styles.chipDisabled,
+                    ]}
+                  >
+                    <Text style={styles.chipText}>{t}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Row>
         </Section>
 
         {/* 액션 */}
@@ -181,13 +274,6 @@ const Row: React.FC<{ label: string; value?: string; children: React.ReactNode }
       {value ? <Text style={styles.rowValue}>{value}</Text> : null}
     </View>
     <View style={styles.rowBody}>{children}</View>
-  </View>
-);
-
-const DisabledRow: React.FC<{ label: string; hint: string }> = ({ label, hint }) => (
-  <View style={[styles.row, styles.rowDisabled]}>
-    <Text style={[styles.rowLabel, styles.disabledText]}>{label}</Text>
-    <Text style={styles.rowHint}>{hint}</Text>
   </View>
 );
 
@@ -276,10 +362,19 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     transform: [{ scale: 0.95 }],
   },
+  chipDisabled: {
+    opacity: 0.4,
+  },
   chipText: {
     fontFamily: fonts.medium,
     fontSize: 12,
     color: colors.normalText,
+  },
+  subHint: {
+    color: colors.mutedText,
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    marginTop: 6,
   },
   swatch: {
     width: 12,
