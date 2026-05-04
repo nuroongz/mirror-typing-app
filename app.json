@@ -3,6 +3,7 @@
     "name": "Mirror Typing",
     "slug": "mirror-typing-app",
     "version": "0.1.0",
+    "description": "타이핑한 텍스트를 거울 글씨로 보여주는 뇌 훈련 앱. 좌뇌 활성화 · 공간 인지 · 집중력 향상.",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -12,17 +13,30 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nuroongz.mirrortyping"
+      "bundleIdentifier": "com.nuroongz.mirrortyping",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": [],
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0f0f1a"
       },
-      "package": "com.nuroongz.mirrortyping"
+      "package": "com.nuroongz.mirrortyping",
+      "versionCode": 1,
+      "permissions": []
     },
     "web": {
       "bundler": "metro"
     },
-    "plugins": ["expo-font"]
+    "plugins": ["expo-font"],
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    },
+    "owner": "nuroongz"
   }
 }

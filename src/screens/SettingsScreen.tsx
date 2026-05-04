@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   chipPressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.95 }],
   },
   chipText: {
     fontFamily: fonts.medium,

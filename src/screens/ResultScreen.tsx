@@ -1,7 +1,8 @@
 // 훈련 결과 화면
 // - StatsContext.lastSession 을 표시
-// - 다시하기 / 통계 보기 / 홈으로
-import React from 'react';
+// - 정확도 카운트업 애니메이션
+// - 마운트 시 성공 햅틱
+import React, { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
@@ -9,10 +10,21 @@ import { TopBar } from '../components/TopBar';
 import { useStats, formatDuration } from '../context/StatsContext';
 import { useNavigator } from '../navigation/AppNavigator';
 import { LEVEL_LABELS } from '../data/words';
+import { useCountUp } from '../hooks/useCountUp';
+import { useHaptic } from '../hooks/useHaptic';
 
 export const ResultScreen: React.FC = () => {
   const { lastSession } = useStats();
   const { navigate } = useNavigator();
+  const haptic = useHaptic();
+  const animatedAccuracy = useCountUp(lastSession?.accuracy ?? 0, 900);
+
+  // 마운트 시 결과에 따라 햅틱 (높은 정확도 = success, 낮으면 medium)
+  useEffect(() => {
+    if (!lastSession) return;
+    if (lastSession.accuracy >= 80) haptic('success');
+    else haptic('medium');
+  }, [lastSession, haptic]);
 
   if (!lastSession) {
     return (
@@ -42,7 +54,7 @@ export const ResultScreen: React.FC = () => {
         <View style={styles.bigCard}>
           <Text style={styles.bigLabel}>정확도</Text>
           <Text style={[styles.bigValue, { color: accuracyColor }]}>
-            {lastSession.accuracy.toFixed(1)}%
+            {animatedAccuracy.toFixed(1)}%
           </Text>
         </View>
 
@@ -200,6 +212,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.95 }],
   },
 });

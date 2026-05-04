@@ -7,7 +7,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "tsc": "tsc --noEmit"
+    "tsc": "tsc --noEmit",
+    "build:ios": "eas build --platform ios --profile production",
+    "build:android": "eas build --platform android --profile production",
+    "build:preview": "eas build --profile preview",
+    "submit:ios": "eas submit --platform ios",
+    "submit:android": "eas submit --platform android"
   },
   "dependencies": {
     "expo": "~51.0.0",
@@ -16,6 +21,8 @@
     "expo-sharing": "~12.0.1",
     "expo-font": "~12.0.10",
     "expo-splash-screen": "~0.27.5",
+    "expo-keep-awake": "~13.0.2",
+    "expo-haptics": "~13.0.1",
     "@expo-google-fonts/noto-sans-kr": "^0.2.3",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/slider": "4.5.2",

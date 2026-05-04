@@ -24,35 +24,44 @@ import { NormalView } from '../components/NormalView';
 import { ModeTabs } from '../components/ModeTabs';
 import { TopBar } from '../components/TopBar';
 import { useNavigator } from '../navigation/AppNavigator';
+import { useHaptic } from '../hooks/useHaptic';
 
 const PLACEHOLDER = '여기에 타이핑하세요... 거울에 비춰보세요 🪞';
 
 export const HomeScreen: React.FC = () => {
   const { settings, update } = useSettings();
   const { navigate } = useNavigator();
+  const haptic = useHaptic();
   const [text, setText] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
 
   const { bg: mirrorBg, text: mirrorText } = resolveMirrorColors(settings);
   const displayText = text || PLACEHOLDER;
 
-  const handleClear = useCallback(() => setText(''), []);
+  const handleClear = useCallback(() => {
+    setText('');
+    haptic('light');
+  }, [haptic]);
 
   const handlePrint = useCallback(async () => {
     if (!text.trim()) {
+      haptic('warning');
       Alert.alert('출력할 내용이 없어요', '먼저 텍스트를 입력해 주세요.');
       return;
     }
     try {
       setIsPrinting(true);
+      haptic('medium');
       await printAndShareMirror(text, settings.mirrorFontSize);
+      haptic('success');
     } catch (err) {
+      haptic('error');
       const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
       Alert.alert('PDF 출력 실패', message);
     } finally {
       setIsPrinting(false);
     }
-  }, [text, settings.mirrorFontSize]);
+  }, [text, settings.mirrorFontSize, haptic]);
 
   // 모드별 디스플레이 영역
   const renderDisplay = () => {
@@ -108,7 +117,13 @@ export const HomeScreen: React.FC = () => {
         onRightPress={() => navigate('settings')}
       />
 
-      <ModeTabs value={settings.mode} onChange={(mode) => update({ mode })} />
+      <ModeTabs
+        value={settings.mode}
+        onChange={(mode) => {
+          haptic('light');
+          update({ mode });
+        }}
+      />
 
       {renderDisplay()}
 
@@ -252,7 +267,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.buttonBg,
   },
   buttonPressed: {
-    transform: [{ scale: 0.96 }],
+    transform: [{ scale: 0.95 }],
     opacity: 0.9,
   },
   buttonDisabled: {

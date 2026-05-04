@@ -4,6 +4,7 @@
 // - 세션 종료 시 StatsContext.addSession() 호출 후 ResultScreen 으로 이동
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,6 +14,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useKeepAwake } from 'expo-keep-awake';
 import { colors } from '../theme/colors';
 import { fontSize, fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
@@ -27,6 +29,7 @@ import {
   shuffle,
 } from '../data/words';
 import { TimerOption, useStats } from '../context/StatsContext';
+import { useHaptic } from '../hooks/useHaptic';
 
 // 입력값과 정답 사이의 정답 글자 수 (앞에서부터 일치하는 길이)
 const correctPrefixLen = (typed: string, target: string): number => {
@@ -41,9 +44,13 @@ const TIMERS: TimerOption[] = [30, 60, 0]; // 0 = 무제한
 const PROMPTS_PER_SESSION_LIMIT = 30;
 
 export const TrainingScreen: React.FC = () => {
+  // 훈련 중 화면 꺼짐 방지
+  useKeepAwake();
+
   const { navigate } = useNavigator();
   const { settings } = useSettings();
   const { addSession } = useStats();
+  const haptic = useHaptic();
   const { bg: mirrorBg, text: mirrorText } = resolveMirrorColors(settings);
 
   const [phase, setPhase] = useState<'setup' | 'play'>('setup');
@@ -117,9 +124,10 @@ export const TrainingScreen: React.FC = () => {
     startedAtRef.current = Date.now();
     setNow(Date.now());
     setPhase('play');
-  }, [level]);
+    haptic('medium');
+  }, [level, haptic]);
 
-  // 한 프롬프트 완료/스킵 처리
+  // 한 프롬프트 완료/스킵 처리 (햅틱 동반)
   const advance = useCallback(
     (mode: 'completed' | 'skipped') => {
       const target = prompts[index];
@@ -129,7 +137,12 @@ export const TrainingScreen: React.FC = () => {
       totalCharsRef.current += target.length;
       correctCharsRef.current += correct;
       attemptedRef.current += 1;
-      if (mode === 'completed') completedRef.current += 1;
+      if (mode === 'completed') {
+        completedRef.current += 1;
+        haptic('success');
+      } else {
+        haptic('warning');
+      }
 
       const next = index + 1;
       if (next >= prompts.length) {
@@ -139,8 +152,20 @@ export const TrainingScreen: React.FC = () => {
       setIndex(next);
       setInput('');
     },
-    [prompts, index, input, finalize],
+    [prompts, index, input, finalize, haptic],
   );
+
+  // 프롬프트 변경 시 fade-in 애니메이션
+  const promptFade = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (phase !== 'play') return;
+    promptFade.setValue(0);
+    Animated.timing(promptFade, {
+      toValue: 1,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [phase, index, promptFade]);
 
   // 입력값이 정답과 정확히 일치하면 자동 다음 프롬프트
   useEffect(() => {
@@ -259,14 +284,15 @@ export const TrainingScreen: React.FC = () => {
         </View>
       </View>
 
-      <MirrorView
-        text={target}
-        fontSize={settings.mirrorFontSize}
-        bgColor={mirrorBg}
-        textColor={mirrorText}
-        label="PROMPT"
-        style={styles.promptArea}
-      />
+      <Animated.View style={[styles.promptArea, { opacity: promptFade }]}>
+        <MirrorView
+          text={target}
+          fontSize={settings.mirrorFontSize}
+          bgColor={mirrorBg}
+          textColor={mirrorText}
+          label="PROMPT"
+        />
+      </Animated.View>
 
       <TextInput
         style={styles.input}
@@ -442,6 +468,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   promptArea: {
+    flex: 1,
     marginBottom: 12,
   },
   input: {
@@ -480,7 +507,7 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.95 }],
   },
 });
 

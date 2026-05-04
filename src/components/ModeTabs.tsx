@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   tabPressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.95 }],
   },
   label: {
     color: colors.normalText,

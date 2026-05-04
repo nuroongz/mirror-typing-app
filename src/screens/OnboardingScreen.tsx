@@ -15,6 +15,7 @@ import {
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { useNavigator } from '../navigation/AppNavigator';
+import { useHaptic } from '../hooks/useHaptic';
 
 type Slide = {
   emoji: string;
@@ -44,6 +45,7 @@ const SLIDES: Slide[] = [
 
 export const OnboardingScreen: React.FC = () => {
   const { completeOnboarding } = useNavigator();
+  const haptic = useHaptic();
   const scrollRef = useRef<ScrollView>(null);
   const [width, setWidth] = useState<number>(Dimensions.get('window').width);
   const [page, setPage] = useState<number>(0);
@@ -51,22 +53,28 @@ export const OnboardingScreen: React.FC = () => {
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const next = Math.round(e.nativeEvent.contentOffset.x / Math.max(width, 1));
-      if (next !== page) setPage(next);
+      if (next !== page) {
+        setPage(next);
+        haptic('light');
+      }
     },
-    [page, width],
+    [page, width, haptic],
   );
 
   const goNext = useCallback(() => {
     if (page < SLIDES.length - 1) {
       scrollRef.current?.scrollTo({ x: width * (page + 1), animated: true });
+      haptic('light');
     } else {
+      haptic('success');
       completeOnboarding();
     }
-  }, [page, width, completeOnboarding]);
+  }, [page, width, completeOnboarding, haptic]);
 
   const skip = useCallback(() => {
+    haptic('light');
     completeOnboarding();
-  }, [completeOnboarding]);
+  }, [completeOnboarding, haptic]);
 
   return (
     <View
@@ -197,6 +205,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.95 }],
   },
 });

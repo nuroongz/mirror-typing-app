@@ -1,0 +1,13 @@
+# EAS Build 시 빌드 컨테이너로 업로드하지 않을 파일/폴더
+node_modules/
+.expo/
+dist/
+web-build/
+.git/
+.idea/
+.vscode/
+*.log
+*.md
+docs/
+__tests__/
+coverage/

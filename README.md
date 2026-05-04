@@ -26,10 +26,13 @@
 - [x] 통계 대시보드 — 누적 지표, 레벨별 분포, 최근 세션 20개
 - [x] 세션 자동 저장 (최대 50개, AsyncStorage)
 
-**다음 (Phase 4)**
-- [ ] `expo-keep-awake` 화면 꺼짐 방지
-- [ ] 마이크로 인터랙션 polish (햅틱 연결, 결과 카운트업)
-- [ ] 스토어 배포 준비 (아이콘/스플래시/메타데이터)
+**Phase 4**
+- [x] `expo-keep-awake` — 훈련 중 화면 꺼짐 방지
+- [x] `expo-haptics` — 설정과 연동된 햅틱 피드백 (light/medium/success/warning/error)
+- [x] 결과 화면 정확도 카운트업 (ease-out 900ms)
+- [x] 훈련 프롬프트 fade-in 220ms
+- [x] 모든 버튼 press scale(0.95) 통일
+- [x] 스토어 배포 — `eas.json` 빌드 프로필, `app.json` 메타데이터·권한, `.easignore`
 
 ## 🛠 기술 스택
 
@@ -131,7 +134,9 @@ mirror-typing-app/
     │   └── typography.ts
     ├── utils/
     │   └── print.ts                # PDF 출력 유틸
-    ├── hooks/                      # (Phase 4+ 에서 사용)
+    ├── hooks/
+    │   ├── useHaptic.ts            # 설정 연동 햅틱 트리거
+    │   └── useCountUp.ts           # 숫자 카운트업 애니메이션
     └── data/
         └── words.ts                # 한글 제시어 100개 (레벨 1~4)
 ```
@@ -149,11 +154,71 @@ mirror-typing-app/
 | Warning | `#ffb700` |
 | Button BG | `#2d2d4e` |
 
+## 📦 스토어 배포 (EAS Build)
+
+### 1. EAS CLI 설치 및 로그인
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+### 2. 프로젝트 EAS 연결 (최초 1회)
+
+```bash
+eas init
+# → 생성된 projectId 를 app.json 의 extra.eas.projectId 에 자동 반영됨
+```
+
+### 3. 빌드
+
+```bash
+# 개발용 (Expo Dev Client 포함, 시뮬레이터 가능)
+eas build --profile development --platform ios
+eas build --profile development --platform android
+
+# 내부 배포용 (TestFlight / Internal Testing)
+npm run build:preview
+
+# 프로덕션
+npm run build:ios
+npm run build:android
+```
+
+### 4. 스토어 제출
+
+```bash
+# 사전 준비
+# - eas.json 의 ascAppId / appleTeamId 를 실제 값으로 교체
+# - Android: keystore 는 EAS 가 관리 (eas credentials 로 확인)
+npm run submit:ios       # App Store Connect 에 업로드
+npm run submit:android   # Google Play Internal track
+```
+
+### 5. 아이콘 / 스플래시 추가 (Phase 4 마무리 작업)
+
+`assets/` 에 다음 파일을 추가하면 자동으로 사용됩니다.
+
+| 파일 | 용도 | 권장 크기 |
+|---|---|---|
+| `icon.png` | 앱 아이콘 (iOS/Android 공통) | 1024 × 1024 |
+| `adaptive-icon.png` | Android adaptive icon foreground | 1024 × 1024 |
+| `splash.png` | 스플래시 이미지 | 1242 × 2436 (또는 비율 유지) |
+| `favicon.png` | 웹 favicon | 48 × 48 |
+
+추가 후 `app.json` 의 `expo.icon`, `expo.android.adaptiveIcon.foregroundImage`, `expo.splash.image` 경로를 다시 활성화하세요.
+
+### 6. 권한 / 설명 검토
+
+현재 앱은 **카메라·마이크·위치·저장소 권한이 필요하지 않습니다.** PDF 출력은 `expo-print` + `expo-sharing` 의 시스템 공유 시트만 사용합니다. 스토어 심사 시 추가 권한 설명이 필요한 시점에 `app.json` 의 `ios.infoPlist` / `android.permissions` 에 항목을 추가하세요.
+
 ## 🗺 로드맵
 
-- **Phase 2** — 분할 모드 / 완전 미러 모드, 온보딩 (3슬라이드), 설정 화면
-- **Phase 3** — 뇌 훈련 세션 (레벨 1~4 제시어, 30/60초 타이머), 통계 대시보드
-- **Phase 4** — 애니메이션 polish, `expo-keep-awake` 화면 꺼짐 방지, 스토어 배포
+- ✅ **Phase 1** — MVP 미러 타이핑 + PDF 출력
+- ✅ **Phase 2** — 분할/완전미러 모드, 온보딩, 설정
+- ✅ **Phase 3** — 뇌 훈련 세션 + 통계 대시보드
+- ✅ **Phase 4** — 애니메이션 polish + keep-awake + 햅틱 + 스토어 배포 셋업
+- 🔜 **Phase 5 (아이디어)** — 다국어(영문/일문) 제시어, 음성 안내, 워치 컴패니언
 
 ## 📜 라이선스
 
