@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Mirror Typing",
+    "slug": "mirror-typing-app",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0f1a"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nuroongz.mirrortyping"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f0f1a"
+      },
+      "package": "com.nuroongz.mirrortyping"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": ["expo-font"]
+  }
+}
