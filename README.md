@@ -19,9 +19,17 @@
 - [x] AsyncStorage 자동 영속화
 - [x] 라우트 fade transition (300ms)
 
-**다음 (Phase 3)**
-- [ ] 뇌 훈련 세션 (레벨 1~4 한글 제시어, 30/60초 타이머)
-- [ ] 통계 대시보드 (정확도 · WPM · 누적 시간)
+**Phase 3**
+- [x] 뇌 훈련 세션 — 레벨 1~4, 한글 제시어 100개, 30/60초/무제한 타이머
+- [x] 정확도 / CPM / WPM 실시간 측정 + 자동 다음
+- [x] 결과 화면 — 정확도, 소요시간, CPM/WPM, 다시하기/통계
+- [x] 통계 대시보드 — 누적 지표, 레벨별 분포, 최근 세션 20개
+- [x] 세션 자동 저장 (최대 50개, AsyncStorage)
+
+**다음 (Phase 4)**
+- [ ] `expo-keep-awake` 화면 꺼짐 방지
+- [ ] 마이크로 인터랙션 polish (햅틱 연결, 결과 카운트업)
+- [ ] 스토어 배포 준비 (아이콘/스플래시/메타데이터)
 
 ## 🛠 기술 스택
 
@@ -102,14 +110,18 @@ mirror-typing-app/
     ├── screens/
     │   ├── HomeScreen.tsx          # 미러 타이핑 에디터 (3모드)
     │   ├── OnboardingScreen.tsx    # 첫 실행 3슬라이드
-    │   └── SettingsScreen.tsx      # 설정 (폰트/색상/햅틱/리셋)
+    │   ├── SettingsScreen.tsx      # 설정 (폰트/색상/햅틱/리셋)
+    │   ├── TrainingScreen.tsx      # 훈련 세션 (setup → play)
+    │   ├── ResultScreen.tsx        # 세션 결과
+    │   └── StatsScreen.tsx         # 통계 대시보드
     ├── components/
     │   ├── MirrorView.tsx          # 좌우 반전 표시 박스
     │   ├── NormalView.tsx          # 정상 방향 표시 박스 (분할 모드)
     │   ├── ModeTabs.tsx            # 미러/분할/완전미러 탭
     │   └── TopBar.tsx              # 상단바
     ├── context/
-    │   └── SettingsContext.tsx     # 전역 설정 + AsyncStorage 영속화
+    │   ├── SettingsContext.tsx     # 전역 설정 + AsyncStorage 영속화
+    │   └── StatsContext.tsx        # 세션 기록 + 누적 통계
     ├── navigation/
     │   └── AppNavigator.tsx        # 상태 기반 라우터 + fade transition
     ├── storage/
@@ -119,8 +131,9 @@ mirror-typing-app/
     │   └── typography.ts
     ├── utils/
     │   └── print.ts                # PDF 출력 유틸
-    ├── hooks/                      # (Phase 3+ 에서 사용)
-    └── data/                       # 훈련 단어 목록 (Phase 3)
+    ├── hooks/                      # (Phase 4+ 에서 사용)
+    └── data/
+        └── words.ts                # 한글 제시어 100개 (레벨 1~4)
 ```
 
 ## 🎨 컬러 팔레트

@@ -11,6 +11,7 @@ import {
 } from '@expo-google-fonts/noto-sans-kr';
 import { colors } from './src/theme/colors';
 import { SettingsProvider } from './src/context/SettingsContext';
+import { StatsProvider } from './src/context/StatsContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -44,7 +45,9 @@ export default function App() {
     <SafeAreaView style={styles.safe} onLayout={onLayoutRootView}>
       <StatusBar style="light" />
       <SettingsProvider>
-        <AppNavigator />
+        <StatsProvider>
+          <AppNavigator />
+        </StatsProvider>
       </SettingsProvider>
     </SafeAreaView>
   );

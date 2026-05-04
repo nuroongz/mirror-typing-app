@@ -102,6 +102,8 @@ export const HomeScreen: React.FC = () => {
     >
       <TopBar
         title="Mirror Typing"
+        leftLabel="🧠 훈련"
+        onLeftPress={() => navigate('training')}
         rightLabel="설정"
         onRightPress={() => navigate('settings')}
       />

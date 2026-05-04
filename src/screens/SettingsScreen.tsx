@@ -138,6 +138,12 @@ export const SettingsScreen: React.FC = () => {
         {/* 액션 */}
         <Section title="기타">
           <Pressable
+            onPress={() => navigate('stats')}
+            style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+          >
+            <Text style={styles.actionText}>📊 통계 보기</Text>
+          </Pressable>
+          <Pressable
             onPress={showOnboarding}
             style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
           >

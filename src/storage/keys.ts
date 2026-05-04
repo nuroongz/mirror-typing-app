@@ -2,4 +2,5 @@
 export const STORAGE_KEYS = {
   settings: '@mirror-typing:settings:v1',
   onboardingComplete: '@mirror-typing:onboarding-complete:v1',
+  stats: '@mirror-typing:stats:v1',
 } as const;

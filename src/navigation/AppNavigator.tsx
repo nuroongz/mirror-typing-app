@@ -16,8 +16,11 @@ import { colors } from '../theme/colors';
 import { HomeScreen } from '../screens/HomeScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { TrainingScreen } from '../screens/TrainingScreen';
+import { ResultScreen } from '../screens/ResultScreen';
+import { StatsScreen } from '../screens/StatsScreen';
 
-export type RouteName = 'home' | 'settings' | 'onboarding';
+export type RouteName = 'home' | 'settings' | 'onboarding' | 'training' | 'result' | 'stats';
 
 type NavigatorContextValue = {
   navigate: (route: RouteName) => void;
@@ -103,6 +106,9 @@ export const AppNavigator: React.FC = () => {
         {route === 'onboarding' && <OnboardingScreen />}
         {route === 'home' && <HomeScreen />}
         {route === 'settings' && <SettingsScreen />}
+        {route === 'training' && <TrainingScreen />}
+        {route === 'result' && <ResultScreen />}
+        {route === 'stats' && <StatsScreen />}
       </Animated.View>
     </NavigatorContext.Provider>
   );
