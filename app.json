@@ -15,7 +15,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nuroongz.mirrortyping",
+      "bundleIdentifier": "com.veculy.mirrortyping",
       "buildNumber": "2",
       "infoPlist": {
         "UIBackgroundModes": [],
@@ -26,7 +26,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#0f0f1a"
       },
-      "package": "com.nuroongz.mirrortyping",
+      "package": "com.veculy.mirrortyping",
       "versionCode": 1,
       "permissions": []
     },
