@@ -6,6 +6,7 @@
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -125,7 +126,9 @@ export const HomeScreen: React.FC = () => {
         }}
       />
 
+      <Pressable onPress={Keyboard.dismiss}>
       {renderDisplay()}
+      </Pressable>
 
       <View style={styles.controlsRow}>
         <Text style={styles.controlLabel}>크기</Text>
