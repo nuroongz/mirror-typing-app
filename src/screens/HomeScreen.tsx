@@ -125,10 +125,8 @@ export const HomeScreen: React.FC = () => {
           update({ mode });
         }}
       />
-
-      <Pressable onPress={Keyboard.dismiss}>
+      
       {renderDisplay()}
-      </Pressable>
 
       <View style={styles.controlsRow}>
         <Text style={styles.controlLabel}>크기</Text>
@@ -187,6 +185,11 @@ export const HomeScreen: React.FC = () => {
           </Text>
         </Pressable>
       </View>
+        <Pressable
+        onPress={Keyboard.dismiss}
+        style={{ flex: 1 }}
+        accessible={false}
+      />
     </KeyboardAvoidingView>
   );
 };
