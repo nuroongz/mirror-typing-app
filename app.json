@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0f0f1a"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.veculy.mirrortyping",
@@ -42,6 +44,18 @@
           "defaultChannel": "training-reminder"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6dee27bc-7f2e-4269-922d-d06a2eca16a1"
+      }
+    },
+    "owner": "falke30",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6dee27bc-7f2e-4269-922d-d06a2eca16a1"
+    }
   }
 }
