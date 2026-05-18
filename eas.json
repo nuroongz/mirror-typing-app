@@ -20,10 +20,7 @@
     },
     "production": {
   "channel": "production",
-  "autoIncrement": true,
-  "ios": {
-    "image": "macos-sonoma-14.6-xcode-16.1"
-  }
+  "autoIncrement": true
 }
   },
   "submit": {
