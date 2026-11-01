@@ -2,7 +2,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { fonts } from '../theme/typography';
-import { colors as palette } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useThemedStyles } from '../theme/useTheme';
 
 type Props = {
   text: string;
@@ -20,31 +21,34 @@ export const NormalView: React.FC<Props> = ({
   textColor,
   label = 'NORMAL',
   style,
-}) => (
-  <View style={[styles.area, { backgroundColor: bgColor }, style]}>
-    <Text style={styles.label}>{label}</Text>
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text
-        style={[styles.text, { color: textColor, fontSize, lineHeight: fontSize * 1.4 }]}
+}) => {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={[styles.area, { backgroundColor: bgColor }, style]}>
+      <Text style={styles.label}>{label}</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        {text}
-      </Text>
-    </ScrollView>
-  </View>
-);
+        <Text
+          style={[styles.text, { color: textColor, fontSize, lineHeight: fontSize * 1.4 }]}
+        >
+          {text}
+        </Text>
+      </ScrollView>
+    </View>
+  );
+};
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   area: {
     flex: 1,
     borderRadius: 16,
     padding: 20,
   },
   label: {
-    color: palette.mutedText,
+    color: colors.mutedText,
     fontFamily: fonts.medium,
     fontSize: 11,
     letterSpacing: 2,

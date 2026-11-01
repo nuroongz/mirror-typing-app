@@ -12,7 +12,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useThemedStyles } from '../theme/useTheme';
 import { fonts } from '../theme/typography';
 import { useNavigator } from '../navigation/AppNavigator';
 import { useHaptic } from '../hooks/useHaptic';
@@ -46,6 +47,7 @@ const SLIDES: Slide[] = [
 export const OnboardingScreen: React.FC = () => {
   const { completeOnboarding } = useNavigator();
   const haptic = useHaptic();
+  const styles = useThemedStyles(makeStyles);
   const scrollRef = useRef<ScrollView>(null);
   const [width, setWidth] = useState<number>(Dimensions.get('window').width);
   const [page, setPage] = useState<number>(0);
@@ -128,7 +130,7 @@ export const OnboardingScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.primaryBg,
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaText: {
-    color: colors.normalText,
+    color: colors.onAccent,
     fontFamily: fonts.medium,
     fontSize: 15,
     letterSpacing: 0.5,

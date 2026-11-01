@@ -15,7 +15,8 @@ import {
   View,
 } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/useTheme';
 import { fontSize, fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import { MirrorView } from '../components/MirrorView';
@@ -52,6 +53,8 @@ export const TrainingScreen: React.FC = () => {
   const { settings } = useSettings();
   const { addSession } = useStats();
   const haptic = useHaptic();
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const { bg: mirrorBg, text: mirrorText } = resolveMirrorColors(settings);
 
   const [phase, setPhase] = useState<'setup' | 'play'>('setup');
@@ -304,6 +307,7 @@ export const TrainingScreen: React.FC = () => {
         onChangeText={setInput}
         placeholder="제시어를 입력하세요"
         placeholderTextColor={colors.mutedText}
+        keyboardAppearance={isDark ? 'dark' : 'light'}
         autoCorrect={false}
         autoCapitalize="none"
         spellCheck={false}
@@ -331,14 +335,14 @@ export const TrainingScreen: React.FC = () => {
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.actionText}>다음</Text>
+          <Text style={[styles.actionText, styles.actionTextOnAccent]}>다음</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.primaryBg,
@@ -431,7 +435,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   startBtnText: {
-    color: colors.normalText,
+    color: colors.onAccent,
     fontFamily: fonts.medium,
     fontSize: 15,
     letterSpacing: 0.5,
@@ -508,6 +512,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     fontSize: 14,
     letterSpacing: 0.5,
+  },
+  actionTextOnAccent: {
+    color: colors.onAccent,
   },
   pressed: {
     opacity: 0.85,

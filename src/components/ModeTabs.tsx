@@ -1,7 +1,8 @@
 // 미러 모드 선택 탭 - 미러 / 분할 / 완전미러
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useThemedStyles } from '../theme/useTheme';
 import { fonts } from '../theme/typography';
 import { MirrorMode } from '../context/SettingsContext';
 
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export const ModeTabs: React.FC<Props> = ({ value, onChange }) => {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.row}>
       {TABS.map((tab) => {
@@ -40,7 +42,7 @@ export const ModeTabs: React.FC<Props> = ({ value, onChange }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 8,
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   labelActive: {
-    color: colors.normalText,
+    color: colors.onAccent,
   },
   hint: {
     color: colors.mutedText,
@@ -76,6 +78,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   hintActive: {
-    color: '#e7d8ff',
+    color: colors.onAccentMuted,
   },
 });
