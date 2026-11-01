@@ -12,9 +12,16 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../storage/keys';
 import { fontSize as fontSizeTokens } from '../theme/typography';
+import { ThemeName } from '../theme/colors';
 
 // 미러 디스플레이 표시 모드
 export type MirrorMode = 'mirror' | 'split' | 'fullMirror';
+
+// 앱 테마
+export const THEME_OPTIONS: Record<ThemeName, string> = {
+  light: '라이트',
+  dark: '다크',
+};
 
 // 훈련 언어
 export type Language = 'ko' | 'en' | 'num' | 'mix';
@@ -63,6 +70,7 @@ export type MirrorTextKey = keyof typeof MIRROR_TEXT_OPTIONS;
 
 // 영속화되는 설정 객체
 export type Settings = {
+  theme: ThemeName;
   mode: MirrorMode;
   mirrorFontSize: number;
   mirrorBg: MirrorBgKey;
@@ -75,6 +83,7 @@ export type Settings = {
 };
 
 const DEFAULT_SETTINGS: Settings = {
+  theme: 'light',
   mode: 'mirror',
   mirrorFontSize: fontSizeTokens.mirrorDefault,
   mirrorBg: 'dark',

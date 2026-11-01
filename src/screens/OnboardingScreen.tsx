@@ -1,7 +1,7 @@
 // 첫 실행 시 보여주는 3슬라이드 온보딩
 // - 가로 페이징 ScrollView
 // - 하단 페이지 인디케이터 + 다음/시작 버튼
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   NativeScrollEvent,
@@ -12,10 +12,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { Palette } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { useNavigator } from '../navigation/AppNavigator';
 import { useHaptic } from '../hooks/useHaptic';
+import { useTheme } from '../hooks/useTheme';
 
 type Slide = {
   emoji: string;
@@ -46,6 +47,8 @@ const SLIDES: Slide[] = [
 export const OnboardingScreen: React.FC = () => {
   const { completeOnboarding } = useNavigator();
   const haptic = useHaptic();
+  const palette = useTheme();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   const scrollRef = useRef<ScrollView>(null);
   const [width, setWidth] = useState<number>(Dimensions.get('window').width);
   const [page, setPage] = useState<number>(0);
@@ -128,83 +131,84 @@ export const OnboardingScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 0,
-    paddingVertical: 16,
-  },
-  skipRow: {
-    paddingHorizontal: 16,
-    alignItems: 'flex-end',
-  },
-  skipBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  skipText: {
-    color: colors.mutedText,
-    fontFamily: fonts.medium,
-    fontSize: 13,
-  },
-  scroll: { flex: 1 },
-  slide: {
-    flex: 1,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 96,
-    marginBottom: 28,
-  },
-  title: {
-    color: colors.normalText,
-    fontFamily: fonts.bold,
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  description: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 15,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginVertical: 16,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.buttonBg,
-  },
-  dotActive: {
-    backgroundColor: colors.mirrorText,
-    width: 24,
-  },
-  cta: {
-    marginHorizontal: 24,
-    marginBottom: 8,
-    backgroundColor: colors.accent,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  ctaText: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 15,
-    letterSpacing: 0.5,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
-  },
-});
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: palette.primaryBg,
+      paddingHorizontal: 0,
+      paddingVertical: 16,
+    },
+    skipRow: {
+      paddingHorizontal: 16,
+      alignItems: 'flex-end',
+    },
+    skipBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    skipText: {
+      color: palette.mutedText,
+      fontFamily: fonts.medium,
+      fontSize: 13,
+    },
+    scroll: { flex: 1 },
+    slide: {
+      flex: 1,
+      paddingHorizontal: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emoji: {
+      fontSize: 96,
+      marginBottom: 28,
+    },
+    title: {
+      color: palette.normalText,
+      fontFamily: fonts.bold,
+      fontSize: 24,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    description: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 15,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    dotsRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 8,
+      marginVertical: 16,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: palette.buttonBg,
+    },
+    dotActive: {
+      backgroundColor: palette.mirrorText,
+      width: 24,
+    },
+    cta: {
+      marginHorizontal: 24,
+      marginBottom: 8,
+      backgroundColor: palette.accent,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    ctaText: {
+      color: palette.onAccent,
+      fontFamily: fonts.medium,
+      fontSize: 15,
+      letterSpacing: 0.5,
+    },
+    pressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.95 }],
+    },
+  });

@@ -12,7 +12,7 @@ import React, {
 import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../storage/keys';
-import { colors } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
 import { HomeScreen } from '../screens/HomeScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -37,6 +37,7 @@ export const useNavigator = (): NavigatorContextValue => {
 };
 
 export const AppNavigator: React.FC = () => {
+  const palette = useTheme();
   const [route, setRoute] = useState<RouteName | null>(null); // null = 결정 전
   const [fadeAnim] = useState(() => new Animated.Value(1));
 
@@ -94,8 +95,8 @@ export const AppNavigator: React.FC = () => {
   // 라우트 결정 전: 짧은 로딩
   if (route === null) {
     return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={colors.mirrorText} />
+      <View style={[styles.loading, { backgroundColor: palette.primaryBg }]}>
+        <ActivityIndicator color={palette.mirrorText} />
       </View>
     );
   }
@@ -118,7 +119,6 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   loading: {
     flex: 1,
-    backgroundColor: colors.primaryBg,
     alignItems: 'center',
     justifyContent: 'center',
   },

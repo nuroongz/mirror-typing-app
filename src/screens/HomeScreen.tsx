@@ -1,9 +1,9 @@
-// 메인 미러 타이핑 에디터 화면 (Phase 2)
+// 메인 미러 타이핑 에디터 화면
 // - 3가지 모드: mirror / split / fullMirror
 // - 폰트 크기 슬라이더 (즉시 영속화)
 // - PDF 출력/공유
-// - 우상단 ⚙ 설정 버튼으로 SettingsScreen 진입
-import React, { useCallback, useState } from 'react';
+// - 우상단 설정 버튼
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
@@ -16,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { colors } from '../theme/colors';
+import { Palette } from '../theme/colors';
 import { fontSize, fonts } from '../theme/typography';
 import { printAndShareMirror } from '../utils/print';
 import { resolveMirrorColors, useSettings } from '../context/SettingsContext';
@@ -26,6 +26,7 @@ import { ModeTabs } from '../components/ModeTabs';
 import { TopBar } from '../components/TopBar';
 import { useNavigator } from '../navigation/AppNavigator';
 import { useHaptic } from '../hooks/useHaptic';
+import { useTheme } from '../hooks/useTheme';
 
 const PLACEHOLDER = '여기에 타이핑하세요... 거울에 비춰보세요 🪞';
 
@@ -33,6 +34,8 @@ export const HomeScreen: React.FC = () => {
   const { settings, update } = useSettings();
   const { navigate } = useNavigator();
   const haptic = useHaptic();
+  const palette = useTheme();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   const [text, setText] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
 
@@ -89,7 +92,6 @@ export const HomeScreen: React.FC = () => {
         </View>
       );
     }
-    // mirror, fullMirror 공통: 상단에 미러 디스플레이
     return (
       <MirrorView
         text={displayText}
@@ -101,7 +103,6 @@ export const HomeScreen: React.FC = () => {
     );
   };
 
-  // 완전 미러 모드: 입력창 자체도 좌우 반전
   const inputWrapStyle =
     settings.mode === 'fullMirror' ? [styles.inputWrap, styles.inputWrapMirrored] : styles.inputWrap;
 
@@ -125,7 +126,7 @@ export const HomeScreen: React.FC = () => {
           update({ mode });
         }}
       />
-      
+
       {renderDisplay()}
 
       <View style={styles.controlsRow}>
@@ -137,9 +138,9 @@ export const HomeScreen: React.FC = () => {
           step={1}
           value={settings.mirrorFontSize}
           onValueChange={(v) => update({ mirrorFontSize: v })}
-          minimumTrackTintColor={colors.accent}
-          maximumTrackTintColor={colors.border}
-          thumbTintColor={colors.mirrorText}
+          minimumTrackTintColor={palette.accent}
+          maximumTrackTintColor={palette.border}
+          thumbTintColor={palette.mirrorText}
         />
         <Text style={styles.controlValue}>{settings.mirrorFontSize}px</Text>
       </View>
@@ -150,7 +151,7 @@ export const HomeScreen: React.FC = () => {
           value={text}
           onChangeText={setText}
           placeholder={PLACEHOLDER}
-          placeholderTextColor={colors.mutedText}
+          placeholderTextColor={palette.mutedText}
           multiline
           autoCorrect={false}
           autoCapitalize="none"
@@ -168,7 +169,7 @@ export const HomeScreen: React.FC = () => {
             pressed && styles.buttonPressed,
           ]}
         >
-          <Text style={styles.buttonText}>지우기</Text>
+          <Text style={styles.buttonSecondaryText}>지우기</Text>
         </Pressable>
         <Pressable
           onPress={handlePrint}
@@ -180,12 +181,12 @@ export const HomeScreen: React.FC = () => {
             isPrinting && styles.buttonDisabled,
           ]}
         >
-          <Text style={styles.buttonText}>
+          <Text style={styles.buttonPrimaryText}>
             {isPrinting ? '출력 중...' : 'PDF 출력 / 공유'}
           </Text>
         </Pressable>
       </View>
-        <Pressable
+      <Pressable
         onPress={Keyboard.dismiss}
         style={{ flex: 1 }}
         accessible={false}
@@ -194,95 +195,102 @@ export const HomeScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  singleArea: {
-    marginBottom: 12,
-  },
-  splitWrap: {
-    flex: 1,
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  splitChild: {
-    flex: 1,
-  },
-  splitGap: {
-    width: 8,
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    marginBottom: 8,
-  },
-  controlLabel: {
-    color: colors.mutedText,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    width: 36,
-  },
-  slider: {
-    flex: 1,
-    height: 36,
-  },
-  controlValue: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    width: 48,
-    textAlign: 'right',
-  },
-  inputWrap: {
-    marginBottom: 12,
-  },
-  inputWrapMirrored: {
-    transform: [{ scaleX: -1 }],
-  },
-  input: {
-    minHeight: 96,
-    maxHeight: 160,
-    backgroundColor: colors.buttonBg,
-    color: colors.normalText,
-    fontFamily: fonts.regular,
-    fontSize: fontSize.input,
-    borderRadius: 12,
-    padding: 14,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonPrimary: {
-    backgroundColor: colors.accent,
-  },
-  buttonSecondary: {
-    backgroundColor: colors.buttonBg,
-  },
-  buttonPressed: {
-    transform: [{ scale: 0.95 }],
-    opacity: 0.9,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: fontSize.button,
-    letterSpacing: 0.5,
-  },
-});
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: palette.primaryBg,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 16,
+    },
+    singleArea: {
+      marginBottom: 12,
+    },
+    splitWrap: {
+      flex: 1,
+      flexDirection: 'row',
+      marginBottom: 12,
+    },
+    splitChild: {
+      flex: 1,
+    },
+    splitGap: {
+      width: 8,
+    },
+    controlsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      marginBottom: 8,
+    },
+    controlLabel: {
+      color: palette.mutedText,
+      fontFamily: fonts.medium,
+      fontSize: 12,
+      width: 36,
+    },
+    slider: {
+      flex: 1,
+      height: 36,
+    },
+    controlValue: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 12,
+      width: 48,
+      textAlign: 'right',
+    },
+    inputWrap: {
+      marginBottom: 12,
+    },
+    inputWrapMirrored: {
+      transform: [{ scaleX: -1 }],
+    },
+    input: {
+      minHeight: 96,
+      maxHeight: 160,
+      backgroundColor: palette.buttonBg,
+      color: palette.normalText,
+      fontFamily: fonts.regular,
+      fontSize: fontSize.input,
+      borderRadius: 12,
+      padding: 14,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonPrimary: {
+      backgroundColor: palette.accent,
+    },
+    buttonSecondary: {
+      backgroundColor: palette.buttonBg,
+    },
+    buttonPressed: {
+      transform: [{ scale: 0.95 }],
+      opacity: 0.9,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonPrimaryText: {
+      color: palette.onAccent,
+      fontFamily: fonts.medium,
+      fontSize: fontSize.button,
+      letterSpacing: 0.5,
+    },
+    buttonSecondaryText: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: fontSize.button,
+      letterSpacing: 0.5,
+    },
+  });

@@ -1,7 +1,6 @@
-// 설정 화면 (Phase 2)
-// 활성: 폰트 크기, 미러 배경, 미러 텍스트, 햅틱, 온보딩 다시 보기, 초기화
-// 비활성(향후 단계): 언어, 화면 방향, 훈련 알림 — placeholder 로 안내
-import React from 'react';
+// 설정 화면
+// 활성 섹션: 테마, 디스플레이, 인터랙션, 훈련, 화면, 알림, 기타
+import React, { useMemo } from 'react';
 import {
   Alert,
   Pressable,
@@ -12,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { colors } from '../theme/colors';
+import { Palette, ThemeName } from '../theme/colors';
 import { fontSize as fontSizeTokens, fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import {
@@ -25,13 +24,19 @@ import {
   NOTIFICATION_TIME_PRESETS,
   ORIENTATION_OPTIONS,
   OrientationLock,
+  THEME_OPTIONS,
   useSettings,
 } from '../context/SettingsContext';
 import { useNavigator } from '../navigation/AppNavigator';
+import { useTheme } from '../hooks/useTheme';
+import { useHaptic } from '../hooks/useHaptic';
 
 export const SettingsScreen: React.FC = () => {
   const { settings, update, reset } = useSettings();
   const { navigate, showOnboarding } = useNavigator();
+  const palette = useTheme();
+  const haptic = useHaptic();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
 
   const handleReset = () => {
     Alert.alert('설정 초기화', '모든 설정을 기본값으로 되돌릴까요?', [
@@ -39,6 +44,30 @@ export const SettingsScreen: React.FC = () => {
       { text: '초기화', style: 'destructive', onPress: reset },
     ]);
   };
+
+  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
+    title,
+    children,
+  }) => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.card}>{children}</View>
+    </View>
+  );
+
+  const Row: React.FC<{
+    label: string;
+    value?: string;
+    children: React.ReactNode;
+  }> = ({ label, value, children }) => (
+    <View style={styles.row}>
+      <View style={styles.rowHead}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        {value ? <Text style={styles.rowValue}>{value}</Text> : null}
+      </View>
+      <View style={styles.rowBody}>{children}</View>
+    </View>
+  );
 
   return (
     <View style={styles.root}>
@@ -49,7 +78,39 @@ export const SettingsScreen: React.FC = () => {
       />
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* 디스플레이 폰트 크기 */}
+        {/* 테마 */}
+        <Section title="테마">
+          <Row label="앱 테마" value={THEME_OPTIONS[settings.theme]}>
+            <View style={styles.chipsRow}>
+              {(Object.keys(THEME_OPTIONS) as ThemeName[]).map((k) => {
+                const active = settings.theme === k;
+                return (
+                  <Pressable
+                    key={k}
+                    onPress={() => {
+                      haptic('light');
+                      update({ theme: k });
+                    }}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      {
+                        backgroundColor: palette.buttonBg,
+                        borderColor: active ? palette.accent : palette.border,
+                      },
+                      pressed && styles.chipPressed,
+                    ]}
+                  >
+                    <Text style={styles.chipText}>
+                      {k === 'light' ? '☀️' : '🌙'} {THEME_OPTIONS[k]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Row>
+        </Section>
+
+        {/* 디스플레이 */}
         <Section title="디스플레이">
           <Row label="미러 폰트 크기" value={`${settings.mirrorFontSize}px`}>
             <Slider
@@ -59,9 +120,9 @@ export const SettingsScreen: React.FC = () => {
               step={1}
               value={settings.mirrorFontSize}
               onValueChange={(v) => update({ mirrorFontSize: v })}
-              minimumTrackTintColor={colors.accent}
-              maximumTrackTintColor={colors.border}
-              thumbTintColor={colors.mirrorText}
+              minimumTrackTintColor={palette.accent}
+              maximumTrackTintColor={palette.border}
+              thumbTintColor={palette.mirrorText}
             />
           </Row>
 
@@ -76,7 +137,10 @@ export const SettingsScreen: React.FC = () => {
                     onPress={() => update({ mirrorBg: k })}
                     style={({ pressed }) => [
                       styles.chip,
-                      { backgroundColor: opt.color, borderColor: active ? colors.accent : colors.border },
+                      {
+                        backgroundColor: opt.color,
+                        borderColor: active ? palette.accent : palette.border,
+                      },
                       pressed && styles.chipPressed,
                     ]}
                   >
@@ -106,8 +170,8 @@ export const SettingsScreen: React.FC = () => {
                     style={({ pressed }) => [
                       styles.chip,
                       {
-                        backgroundColor: colors.buttonBg,
-                        borderColor: active ? colors.accent : colors.border,
+                        backgroundColor: palette.buttonBg,
+                        borderColor: active ? palette.accent : palette.border,
                       },
                       pressed && styles.chipPressed,
                     ]}
@@ -127,8 +191,8 @@ export const SettingsScreen: React.FC = () => {
             <Switch
               value={settings.hapticEnabled}
               onValueChange={(v) => update({ hapticEnabled: v })}
-              trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor={colors.normalText}
+              trackColor={{ false: palette.border, true: palette.accent }}
+              thumbColor={palette.normalText}
             />
           </Row>
         </Section>
@@ -147,8 +211,8 @@ export const SettingsScreen: React.FC = () => {
                     style={({ pressed }) => [
                       styles.chip,
                       {
-                        backgroundColor: colors.buttonBg,
-                        borderColor: active ? colors.accent : colors.border,
+                        backgroundColor: palette.buttonBg,
+                        borderColor: active ? palette.accent : palette.border,
                       },
                       pressed && styles.chipPressed,
                     ]}
@@ -177,8 +241,8 @@ export const SettingsScreen: React.FC = () => {
                     style={({ pressed }) => [
                       styles.chip,
                       {
-                        backgroundColor: colors.buttonBg,
-                        borderColor: active ? colors.accent : colors.border,
+                        backgroundColor: palette.buttonBg,
+                        borderColor: active ? palette.accent : palette.border,
                       },
                       pressed && styles.chipPressed,
                     ]}
@@ -197,8 +261,8 @@ export const SettingsScreen: React.FC = () => {
             <Switch
               value={settings.notificationEnabled}
               onValueChange={(v) => update({ notificationEnabled: v })}
-              trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor={colors.normalText}
+              trackColor={{ false: palette.border, true: palette.accent }}
+              thumbColor={palette.normalText}
             />
           </Row>
           <Row label="알림 시간" value={settings.notificationTime}>
@@ -213,8 +277,8 @@ export const SettingsScreen: React.FC = () => {
                     style={({ pressed }) => [
                       styles.chip,
                       {
-                        backgroundColor: colors.buttonBg,
-                        borderColor: active ? colors.accent : colors.border,
+                        backgroundColor: palette.buttonBg,
+                        borderColor: active ? palette.accent : palette.border,
                       },
                       pressed && styles.chipPressed,
                       !settings.notificationEnabled && styles.chipDisabled,
@@ -256,152 +320,120 @@ export const SettingsScreen: React.FC = () => {
   );
 };
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.card}>{children}</View>
-  </View>
-);
-
-const Row: React.FC<{ label: string; value?: string; children: React.ReactNode }> = ({
-  label,
-  value,
-  children,
-}) => (
-  <View style={styles.row}>
-    <View style={styles.rowHead}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-    </View>
-    <View style={styles.rowBody}>{children}</View>
-  </View>
-);
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  content: {
-    paddingBottom: 40,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    color: colors.mutedText,
-    fontFamily: fonts.medium,
-    fontSize: 11,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  card: {
-    backgroundColor: colors.buttonBg,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  row: {
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  rowDisabled: {
-    opacity: 0.55,
-  },
-  rowHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  rowLabel: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-  },
-  rowValue: {
-    color: colors.mirrorText,
-    fontFamily: fonts.medium,
-    fontSize: 13,
-  },
-  rowBody: {
-    marginTop: 4,
-  },
-  rowHint: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    marginTop: 4,
-  },
-  disabledText: {
-    color: colors.mutedText,
-  },
-  slider: {
-    flex: 1,
-    height: 36,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 2,
-  },
-  chipPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
-  },
-  chipDisabled: {
-    opacity: 0.4,
-  },
-  chipText: {
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    color: colors.normalText,
-  },
-  subHint: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    marginTop: 6,
-  },
-  swatch: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  actionRow: {
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  actionText: {
-    color: colors.mirrorText,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-  },
-  destructive: {
-    color: colors.warning,
-  },
-  pressed: {
-    opacity: 0.6,
-  },
-  footnote: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 16,
-  },
-});
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: palette.primaryBg,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    content: {
+      paddingBottom: 40,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      color: palette.mutedText,
+      fontFamily: fonts.medium,
+      fontSize: 11,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+      paddingHorizontal: 4,
+    },
+    card: {
+      backgroundColor: palette.buttonBg,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+    },
+    row: {
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: palette.border,
+    },
+    rowHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    rowLabel: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+    },
+    rowValue: {
+      color: palette.mirrorText,
+      fontFamily: fonts.medium,
+      fontSize: 13,
+    },
+    rowBody: {
+      marginTop: 4,
+    },
+    slider: {
+      flex: 1,
+      height: 36,
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 10,
+      borderWidth: 2,
+    },
+    chipPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.95 }],
+    },
+    chipDisabled: {
+      opacity: 0.4,
+    },
+    chipText: {
+      fontFamily: fonts.medium,
+      fontSize: 12,
+      color: palette.normalText,
+    },
+    subHint: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 11,
+      marginTop: 6,
+    },
+    swatch: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    actionRow: {
+      paddingVertical: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: palette.border,
+    },
+    actionText: {
+      color: palette.mirrorText,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+    },
+    destructive: {
+      color: palette.warning,
+    },
+    pressed: {
+      opacity: 0.6,
+    },
+    footnote: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 11,
+      textAlign: 'center',
+      marginTop: 16,
+    },
+  });

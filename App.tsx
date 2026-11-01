@@ -9,15 +9,34 @@ import {
   NotoSansKR_500Medium,
   NotoSansKR_700Bold,
 } from '@expo-google-fonts/noto-sans-kr';
-import { colors } from './src/theme/colors';
-import { SettingsProvider } from './src/context/SettingsContext';
+import { lightPalette } from './src/theme/colors';
+import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 import { SettingsBridge } from './src/context/SettingsBridge';
 import { StatsProvider } from './src/context/StatsContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { useTheme } from './src/hooks/useTheme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // 이미 숨겨졌어도 무시
 });
+
+// SettingsProvider 안에서 테마를 구독해 SafeAreaView/StatusBar 색을 바꾸는 쉘
+const ThemedShell: React.FC<{ onLayout: () => void; children: React.ReactNode }> = ({
+  onLayout,
+  children,
+}) => {
+  const palette = useTheme();
+  const { settings } = useSettings();
+  return (
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: palette.primaryBg }]}
+      onLayout={onLayout}
+    >
+      <StatusBar style={settings.theme === 'light' ? 'dark' : 'light'} />
+      {children}
+    </SafeAreaView>
+  );
+};
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -43,25 +62,24 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} onLayout={onLayoutRootView}>
-      <StatusBar style="light" />
-      <SettingsProvider>
+    <SettingsProvider>
+      <ThemedShell onLayout={onLayoutRootView}>
         <SettingsBridge />
         <StatsProvider>
           <AppNavigator />
         </StatsProvider>
-      </SettingsProvider>
-    </SafeAreaView>
+      </ThemedShell>
+    </SettingsProvider>
   );
 }
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.primaryBg,
   },
   loading: {
     flex: 1,
-    backgroundColor: colors.primaryBg,
+    // 폰트 로딩 중에는 라이트 테마(기본값) 바탕색 사용
+    backgroundColor: lightPalette.primaryBg,
   },
 });

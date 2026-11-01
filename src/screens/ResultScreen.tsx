@@ -2,9 +2,9 @@
 // - StatsContext.lastSession 을 표시
 // - 정확도 카운트업 애니메이션
 // - 마운트 시 성공 햅틱
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { Palette } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import { useStats, formatDuration } from '../context/StatsContext';
@@ -12,14 +12,16 @@ import { useNavigator } from '../navigation/AppNavigator';
 import { LEVEL_LABELS } from '../data/words';
 import { useCountUp } from '../hooks/useCountUp';
 import { useHaptic } from '../hooks/useHaptic';
+import { useTheme } from '../hooks/useTheme';
 
 export const ResultScreen: React.FC = () => {
   const { lastSession } = useStats();
   const { navigate } = useNavigator();
   const haptic = useHaptic();
+  const palette = useTheme();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   const animatedAccuracy = useCountUp(lastSession?.accuracy ?? 0, 900);
 
-  // 마운트 시 결과에 따라 햅틱 (높은 정확도 = success, 낮으면 medium)
   useEffect(() => {
     if (!lastSession) return;
     if (lastSession.accuracy >= 80) haptic('success');
@@ -39,10 +41,22 @@ export const ResultScreen: React.FC = () => {
 
   const accuracyColor =
     lastSession.accuracy >= 90
-      ? colors.success
+      ? palette.success
       : lastSession.accuracy >= 70
-        ? colors.warning
-        : colors.mirrorText;
+        ? palette.warning
+        : palette.mirrorText;
+
+  const Stat: React.FC<{ label: string; value: string; hint?: string }> = ({
+    label,
+    value,
+    hint,
+  }) => (
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
+    </View>
+  );
 
   return (
     <View style={styles.root}>
@@ -80,13 +94,13 @@ export const ResultScreen: React.FC = () => {
             onPress={() => navigate('training')}
             style={({ pressed }) => [styles.btn, styles.btnPrimary, pressed && styles.pressed]}
           >
-            <Text style={styles.btnText}>다시하기</Text>
+            <Text style={styles.btnPrimaryText}>다시하기</Text>
           </Pressable>
           <Pressable
             onPress={() => navigate('stats')}
             style={({ pressed }) => [styles.btn, styles.btnSecondary, pressed && styles.pressed]}
           >
-            <Text style={styles.btnText}>통계 보기</Text>
+            <Text style={styles.btnSecondaryText}>통계 보기</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -94,124 +108,118 @@ export const ResultScreen: React.FC = () => {
   );
 };
 
-const Stat: React.FC<{ label: string; value: string; hint?: string }> = ({
-  label,
-  value,
-  hint,
-}) => (
-  <View style={styles.statCard}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value}</Text>
-    {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
-  </View>
-);
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  content: {
-    paddingBottom: 40,
-  },
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 14,
-  },
-  heading: {
-    color: colors.normalText,
-    fontFamily: fonts.bold,
-    fontSize: 24,
-    textAlign: 'center',
-    marginTop: 16,
-  },
-  subHeading: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 4,
-    marginBottom: 20,
-  },
-  bigCard: {
-    backgroundColor: colors.buttonBg,
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  bigLabel: {
-    color: colors.mutedText,
-    fontFamily: fonts.medium,
-    fontSize: 11,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  bigValue: {
-    fontFamily: fonts.bold,
-    fontSize: 56,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.buttonBg,
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-  },
-  statLabel: {
-    color: colors.mutedText,
-    fontFamily: fonts.medium,
-    fontSize: 10,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  statValue: {
-    color: colors.normalText,
-    fontFamily: fonts.bold,
-    fontSize: 20,
-  },
-  statHint: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  btn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  btnPrimary: { backgroundColor: colors.accent },
-  btnSecondary: { backgroundColor: colors.buttonBg },
-  btnText: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
-  },
-});
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: palette.primaryBg,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    content: {
+      paddingBottom: 40,
+    },
+    emptyWrap: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 40,
+    },
+    emptyText: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 14,
+    },
+    heading: {
+      color: palette.normalText,
+      fontFamily: fonts.bold,
+      fontSize: 24,
+      textAlign: 'center',
+      marginTop: 16,
+    },
+    subHeading: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 13,
+      textAlign: 'center',
+      marginTop: 4,
+      marginBottom: 20,
+    },
+    bigCard: {
+      backgroundColor: palette.buttonBg,
+      borderRadius: 16,
+      padding: 24,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    bigLabel: {
+      color: palette.mutedText,
+      fontFamily: fonts.medium,
+      fontSize: 11,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+    },
+    bigValue: {
+      fontFamily: fonts.bold,
+      fontSize: 56,
+    },
+    gridRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 10,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: palette.buttonBg,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+    },
+    statLabel: {
+      color: palette.mutedText,
+      fontFamily: fonts.medium,
+      fontSize: 10,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginBottom: 4,
+    },
+    statValue: {
+      color: palette.normalText,
+      fontFamily: fonts.bold,
+      fontSize: 20,
+    },
+    statHint: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 10,
+      marginTop: 2,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 16,
+    },
+    btn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    btnPrimary: { backgroundColor: palette.accent },
+    btnSecondary: { backgroundColor: palette.buttonBg },
+    btnPrimaryText: {
+      color: palette.onAccent,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+    },
+    btnSecondaryText: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+    },
+    pressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.95 }],
+    },
+  });

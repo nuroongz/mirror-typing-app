@@ -2,7 +2,7 @@
 // - phase 'setup': 레벨/타이머 선택
 // - phase 'play': 미러 디스플레이로 제시어 표시 + 입력 + 진행률/시간 표시
 // - 세션 종료 시 StatsContext.addSession() 호출 후 ResultScreen 으로 이동
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   KeyboardAvoidingView,
@@ -15,12 +15,16 @@ import {
   View,
 } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { colors } from '../theme/colors';
+import { Palette } from '../theme/colors';
 import { fontSize, fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import { MirrorView } from '../components/MirrorView';
 import { useNavigator } from '../navigation/AppNavigator';
-import { resolveMirrorColors, useSettings } from '../context/SettingsContext';
+import {
+  LANGUAGE_OPTIONS,
+  resolveMirrorColors,
+  useSettings,
+} from '../context/SettingsContext';
 import {
   LEVEL_HINTS,
   LEVEL_LABELS,
@@ -28,9 +32,9 @@ import {
   getPrompts,
   shuffle,
 } from '../data/words';
-import { LANGUAGE_OPTIONS } from '../context/SettingsContext';
 import { TimerOption, useStats } from '../context/StatsContext';
 import { useHaptic } from '../hooks/useHaptic';
+import { useTheme } from '../hooks/useTheme';
 
 // 입력값과 정답 사이의 정답 글자 수 (앞에서부터 일치하는 길이)
 const correctPrefixLen = (typed: string, target: string): number => {
@@ -41,37 +45,35 @@ const correctPrefixLen = (typed: string, target: string): number => {
 };
 
 const LEVELS: TrainingLevel[] = [1, 2, 3, 4];
-const TIMERS: TimerOption[] = [30, 60, 0]; // 0 = 무제한
+const TIMERS: TimerOption[] = [30, 60, 0];
 const PROMPTS_PER_SESSION_LIMIT = 30;
 
 export const TrainingScreen: React.FC = () => {
-  // 훈련 중 화면 꺼짐 방지
   useKeepAwake();
 
   const { navigate } = useNavigator();
   const { settings } = useSettings();
   const { addSession } = useStats();
   const haptic = useHaptic();
+  const palette = useTheme();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   const { bg: mirrorBg, text: mirrorText } = resolveMirrorColors(settings);
 
   const [phase, setPhase] = useState<'setup' | 'play'>('setup');
   const [level, setLevel] = useState<TrainingLevel>(2);
   const [timer, setTimer] = useState<TimerOption>(60);
 
-  // play 상태
   const [prompts, setPrompts] = useState<string[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [input, setInput] = useState<string>('');
   const startedAtRef = useRef<number>(0);
-  const [now, setNow] = useState<number>(0); // 1초마다 갱신용
+  const [now, setNow] = useState<number>(0);
 
-  // 누적치
   const totalCharsRef = useRef<number>(0);
   const correctCharsRef = useRef<number>(0);
   const completedRef = useRef<number>(0);
   const attemptedRef = useRef<number>(0);
 
-  // 세션 종료 (정상 / 시간 초과 / 끝내기)
   const finalize = useCallback(() => {
     const durationMs = Math.max(1, Date.now() - startedAtRef.current);
     const accuracy =
@@ -96,14 +98,12 @@ export const TrainingScreen: React.FC = () => {
     navigate('result');
   }, [addSession, level, timer, navigate]);
 
-  // 1초 단위 타이머 (남은 시간 갱신, 무제한이면 카운트만 올림)
   useEffect(() => {
     if (phase !== 'play') return;
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [phase]);
 
-  // 시간 만료 감지
   useEffect(() => {
     if (phase !== 'play' || timer === 0) return;
     const elapsed = now - startedAtRef.current;
@@ -128,7 +128,6 @@ export const TrainingScreen: React.FC = () => {
     haptic('medium');
   }, [level, settings.language, haptic]);
 
-  // 한 프롬프트 완료/스킵 처리 (햅틱 동반)
   const advance = useCallback(
     (mode: 'completed' | 'skipped') => {
       const target = prompts[index];
@@ -156,7 +155,6 @@ export const TrainingScreen: React.FC = () => {
     [prompts, index, input, finalize, haptic],
   );
 
-  // 프롬프트 변경 시 fade-in 애니메이션
   const promptFade = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     if (phase !== 'play') return;
@@ -168,7 +166,6 @@ export const TrainingScreen: React.FC = () => {
     }).start();
   }, [phase, index, promptFade]);
 
-  // 입력값이 정답과 정확히 일치하면 자동 다음 프롬프트
   useEffect(() => {
     if (phase !== 'play') return;
     const target = prompts[index];
@@ -177,7 +174,6 @@ export const TrainingScreen: React.FC = () => {
     }
   }, [phase, prompts, index, input, advance]);
 
-  // 화면 렌더링 ---
   if (phase === 'setup') {
     return (
       <View style={styles.root}>
@@ -250,7 +246,6 @@ export const TrainingScreen: React.FC = () => {
     );
   }
 
-  // play phase
   const target = prompts[index] ?? '';
   const elapsedMs = now - startedAtRef.current;
   const remainingSec = timer === 0 ? null : Math.max(0, Math.ceil(timer - elapsedMs / 1000));
@@ -284,7 +279,9 @@ export const TrainingScreen: React.FC = () => {
         </View>
         <View style={styles.statusItem}>
           <Text style={styles.statusLabel}>정확도</Text>
-          <Text style={[styles.statusValue, { color: colors.success }]}>{liveAccuracy}%</Text>
+          <Text style={[styles.statusValue, { color: palette.success }]}>
+            {liveAccuracy}%
+          </Text>
         </View>
       </View>
 
@@ -303,7 +300,7 @@ export const TrainingScreen: React.FC = () => {
         value={input}
         onChangeText={setInput}
         placeholder="제시어를 입력하세요"
-        placeholderTextColor={colors.mutedText}
+        placeholderTextColor={palette.mutedText}
         autoCorrect={false}
         autoCapitalize="none"
         spellCheck={false}
@@ -321,7 +318,7 @@ export const TrainingScreen: React.FC = () => {
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.actionText}>건너뛰기</Text>
+          <Text style={styles.actionSecondaryText}>건너뛰기</Text>
         </Pressable>
         <Pressable
           onPress={() => advance(input === target ? 'completed' : 'skipped')}
@@ -331,187 +328,191 @@ export const TrainingScreen: React.FC = () => {
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.actionText}>다음</Text>
+          <Text style={styles.actionPrimaryText}>다음</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  // setup
-  setupContent: {
-    paddingBottom: 40,
-  },
-  setupHeading: {
-    color: colors.normalText,
-    fontFamily: fonts.bold,
-    fontSize: 22,
-    marginTop: 12,
-  },
-  setupSub: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    color: colors.mutedText,
-    fontFamily: fonts.medium,
-    fontSize: 11,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  optionsCol: {
-    gap: 8,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  levelRow: {
-    backgroundColor: colors.buttonBg,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  levelRowActive: {
-    borderColor: colors.accent,
-  },
-  levelLabel: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 15,
-  },
-  levelLabelActive: {
-    color: colors.mirrorText,
-  },
-  levelHint: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  timerChip: {
-    flex: 1,
-    backgroundColor: colors.buttonBg,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    alignItems: 'center',
-  },
-  timerChipActive: {
-    borderColor: colors.accent,
-  },
-  timerLabel: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-  },
-  timerLabelActive: {
-    color: colors.mirrorText,
-  },
-  startBtn: {
-    backgroundColor: colors.accent,
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  startBtnText: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 15,
-    letterSpacing: 0.5,
-  },
-  helpText: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: 'center',
-    marginTop: 24,
-  },
-  // play
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: colors.buttonBg,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginBottom: 10,
-  },
-  statusItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statusLabel: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  statusValue: {
-    color: colors.normalText,
-    fontFamily: fonts.bold,
-    fontSize: 18,
-    marginTop: 2,
-  },
-  promptArea: {
-    flex: 1,
-    marginBottom: 12,
-  },
-  input: {
-    minHeight: 80,
-    maxHeight: 160,
-    backgroundColor: colors.buttonBg,
-    color: colors.normalText,
-    fontFamily: fonts.regular,
-    fontSize: fontSize.input,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionPrimary: {
-    backgroundColor: colors.accent,
-  },
-  actionSecondary: {
-    backgroundColor: colors.buttonBg,
-  },
-  actionText: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    letterSpacing: 0.5,
-  },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
-  },
-});
-
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: palette.primaryBg,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 16,
+    },
+    setupContent: {
+      paddingBottom: 40,
+    },
+    setupHeading: {
+      color: palette.normalText,
+      fontFamily: fonts.bold,
+      fontSize: 22,
+      marginTop: 12,
+    },
+    setupSub: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 13,
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      color: palette.mutedText,
+      fontFamily: fonts.medium,
+      fontSize: 11,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginTop: 12,
+      marginBottom: 8,
+    },
+    optionsCol: {
+      gap: 8,
+    },
+    optionsRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    levelRow: {
+      backgroundColor: palette.buttonBg,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    levelRowActive: {
+      borderColor: palette.accent,
+    },
+    levelLabel: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 15,
+    },
+    levelLabelActive: {
+      color: palette.mirrorText,
+    },
+    levelHint: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    timerChip: {
+      flex: 1,
+      backgroundColor: palette.buttonBg,
+      paddingVertical: 14,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      alignItems: 'center',
+    },
+    timerChipActive: {
+      borderColor: palette.accent,
+    },
+    timerLabel: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+    },
+    timerLabelActive: {
+      color: palette.mirrorText,
+    },
+    startBtn: {
+      backgroundColor: palette.accent,
+      paddingVertical: 16,
+      borderRadius: 14,
+      alignItems: 'center',
+      marginTop: 24,
+    },
+    startBtnText: {
+      color: palette.onAccent,
+      fontFamily: fonts.medium,
+      fontSize: 15,
+      letterSpacing: 0.5,
+    },
+    helpText: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      lineHeight: 18,
+      textAlign: 'center',
+      marginTop: 24,
+    },
+    statusRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      backgroundColor: palette.buttonBg,
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      marginBottom: 10,
+    },
+    statusItem: {
+      alignItems: 'center',
+      flex: 1,
+    },
+    statusLabel: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+    },
+    statusValue: {
+      color: palette.normalText,
+      fontFamily: fonts.bold,
+      fontSize: 18,
+      marginTop: 2,
+    },
+    promptArea: {
+      flex: 1,
+      marginBottom: 12,
+    },
+    input: {
+      minHeight: 80,
+      maxHeight: 160,
+      backgroundColor: palette.buttonBg,
+      color: palette.normalText,
+      fontFamily: fonts.regular,
+      fontSize: fontSize.input,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 12,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    actionBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionPrimary: {
+      backgroundColor: palette.accent,
+    },
+    actionSecondary: {
+      backgroundColor: palette.buttonBg,
+    },
+    actionPrimaryText: {
+      color: palette.onAccent,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+      letterSpacing: 0.5,
+    },
+    actionSecondaryText: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+      letterSpacing: 0.5,
+    },
+    pressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.95 }],
+    },
+  });

@@ -1,8 +1,9 @@
 // 미러 모드 선택 탭 - 미러 / 분할 / 완전미러
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
+import { useTheme } from '../hooks/useTheme';
+import { Palette } from '../theme/colors';
 import { MirrorMode } from '../context/SettingsContext';
 
 const TABS: ReadonlyArray<{ key: MirrorMode; label: string; hint: string }> = [
@@ -17,6 +18,8 @@ type Props = {
 };
 
 export const ModeTabs: React.FC<Props> = ({ value, onChange }) => {
+  const palette = useTheme();
+  const styles = useMemo(() => makeStyles(palette), [palette]);
   return (
     <View style={styles.row}>
       {TABS.map((tab) => {
@@ -40,42 +43,43 @@ export const ModeTabs: React.FC<Props> = ({ value, onChange }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    backgroundColor: colors.buttonBg,
-    alignItems: 'center',
-  },
-  tabActive: {
-    backgroundColor: colors.accent,
-  },
-  tabPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
-  },
-  label: {
-    color: colors.normalText,
-    fontFamily: fonts.medium,
-    fontSize: 13,
-  },
-  labelActive: {
-    color: colors.normalText,
-  },
-  hint: {
-    color: colors.mutedText,
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  hintActive: {
-    color: '#e7d8ff',
-  },
-});
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 12,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      borderRadius: 12,
+      backgroundColor: palette.buttonBg,
+      alignItems: 'center',
+    },
+    tabActive: {
+      backgroundColor: palette.accent,
+    },
+    tabPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.95 }],
+    },
+    label: {
+      color: palette.normalText,
+      fontFamily: fonts.medium,
+      fontSize: 13,
+    },
+    labelActive: {
+      color: palette.onAccent,
+    },
+    hint: {
+      color: palette.mutedText,
+      fontFamily: fonts.regular,
+      fontSize: 10,
+      marginTop: 2,
+    },
+    hintActive: {
+      color: palette.onAccentMuted,
+    },
+  });
