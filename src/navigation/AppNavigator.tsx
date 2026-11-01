@@ -12,7 +12,8 @@ import React, {
 import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../storage/keys';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/useTheme';
 import { HomeScreen } from '../screens/HomeScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -39,6 +40,8 @@ export const useNavigator = (): NavigatorContextValue => {
 export const AppNavigator: React.FC = () => {
   const [route, setRoute] = useState<RouteName | null>(null); // null = 결정 전
   const [fadeAnim] = useState(() => new Animated.Value(1));
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
 
   // 최초 진입 시 온보딩 완료 여부 확인
   useEffect(() => {
@@ -114,7 +117,7 @@ export const AppNavigator: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   fill: { flex: 1 },
   loading: {
     flex: 1,

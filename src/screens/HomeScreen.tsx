@@ -16,7 +16,8 @@ import {
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/useTheme';
 import { fontSize, fonts } from '../theme/typography';
 import { printAndShareMirror } from '../utils/print';
 import { resolveMirrorColors, useSettings } from '../context/SettingsContext';
@@ -33,6 +34,8 @@ export const HomeScreen: React.FC = () => {
   const { settings, update } = useSettings();
   const { navigate } = useNavigator();
   const haptic = useHaptic();
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [text, setText] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
 
@@ -151,6 +154,7 @@ export const HomeScreen: React.FC = () => {
           onChangeText={setText}
           placeholder={PLACEHOLDER}
           placeholderTextColor={colors.mutedText}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           multiline
           autoCorrect={false}
           autoCapitalize="none"
@@ -180,7 +184,7 @@ export const HomeScreen: React.FC = () => {
             isPrinting && styles.buttonDisabled,
           ]}
         >
-          <Text style={styles.buttonText}>
+          <Text style={[styles.buttonText, styles.buttonTextOnAccent]}>
             {isPrinting ? '출력 중...' : 'PDF 출력 / 공유'}
           </Text>
         </Pressable>
@@ -194,7 +198,7 @@ export const HomeScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.primaryBg,
@@ -284,5 +288,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     fontSize: fontSize.button,
     letterSpacing: 0.5,
+  },
+  buttonTextOnAccent: {
+    color: colors.onAccent,
   },
 });

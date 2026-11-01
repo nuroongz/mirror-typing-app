@@ -1,5 +1,5 @@
 // 앱 전역 설정 컨텍스트
-// - 모드, 폰트 크기, 미러 배경/텍스트 색상, 햅틱 등을 보관
+// - 테마, 모드, 폰트 크기, 미러 배경/텍스트 색상, 햅틱 등을 보관
 // - AsyncStorage 에 변경 즉시 자동 영속화
 import React, {
   createContext,
@@ -12,6 +12,13 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../storage/keys';
 import { fontSize as fontSizeTokens } from '../theme/typography';
+import { THEME_PALETTES, ThemeMode } from '../theme/colors';
+
+// 앱 테마
+export const THEME_OPTIONS: Record<ThemeMode, { label: string; icon: string }> = {
+  light: { label: '라이트', icon: '☀️' },
+  dark: { label: '다크', icon: '🌙' },
+};
 
 // 미러 디스플레이 표시 모드
 export type MirrorMode = 'mirror' | 'split' | 'fullMirror';
@@ -45,7 +52,9 @@ export const NOTIFICATION_TIME_PRESETS: ReadonlyArray<string> = [
 ];
 
 // 미러 배경 옵션 - 키와 실제 컬러 매핑
+// - auto: 현재 앱 테마에 맞춘 색상 (color 가 null → 테마 팔레트에서 결정)
 export const MIRROR_BG_OPTIONS = {
+  auto: { label: '테마 맞춤', color: null },
   dark: { label: '딥블루', color: '#1a1a2e' },
   black: { label: '블랙', color: '#000000' },
   light: { label: '화이트', color: '#ffffff' },
@@ -54,6 +63,7 @@ export type MirrorBgKey = keyof typeof MIRROR_BG_OPTIONS;
 
 // 미러 텍스트 색상 옵션
 export const MIRROR_TEXT_OPTIONS = {
+  auto: { label: '테마 맞춤', color: null },
   cyan: { label: '시안', color: '#00d4ff' },
   white: { label: '화이트', color: '#ffffff' },
   yellow: { label: '옐로우', color: '#ffb700' },
@@ -63,6 +73,7 @@ export type MirrorTextKey = keyof typeof MIRROR_TEXT_OPTIONS;
 
 // 영속화되는 설정 객체
 export type Settings = {
+  theme: ThemeMode;
   mode: MirrorMode;
   mirrorFontSize: number;
   mirrorBg: MirrorBgKey;
@@ -75,15 +86,30 @@ export type Settings = {
 };
 
 const DEFAULT_SETTINGS: Settings = {
+  theme: 'light',
   mode: 'mirror',
   mirrorFontSize: fontSizeTokens.mirrorDefault,
-  mirrorBg: 'dark',
-  mirrorText: 'cyan',
+  mirrorBg: 'auto',
+  mirrorText: 'auto',
   hapticEnabled: true,
   language: 'ko',
   orientationLock: 'portrait',
   notificationEnabled: false,
   notificationTime: '20:00',
+};
+
+// 저장된 설정 마이그레이션
+// - 테마 도입 이전 버전은 미러 색상이 항상 저장되어 있었음(기본값 dark/cyan).
+//   그 기본값 조합을 그대로 쓰던 사용자는 '테마 맞춤'으로 바꿔 라이트 테마와 어울리게 함.
+//   사용자가 직접 바꾼 조합은 그대로 유지.
+const migrateSettings = (parsed: Partial<Settings>): Partial<Settings> => {
+  if (parsed.theme !== undefined) return parsed;
+  const next = { ...parsed };
+  if (next.mirrorBg === 'dark' && next.mirrorText === 'cyan') {
+    next.mirrorBg = 'auto';
+    next.mirrorText = 'auto';
+  }
+  return next;
 };
 
 type SettingsContextValue = {
@@ -106,7 +132,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEYS.settings);
         if (raw && !cancelled) {
-          const parsed = JSON.parse(raw) as Partial<Settings>;
+          const parsed = migrateSettings(JSON.parse(raw) as Partial<Settings>);
           // 기본값과 병합해 신규 필드 추가시에도 안전하게 동작
           setSettings({ ...DEFAULT_SETTINGS, ...parsed });
         }
@@ -153,8 +179,11 @@ export const useSettings = (): SettingsContextValue => {
   return ctx;
 };
 
-// 헬퍼: 현재 설정의 실제 색상값 추출
-export const resolveMirrorColors = (settings: Settings) => ({
-  bg: MIRROR_BG_OPTIONS[settings.mirrorBg].color,
-  text: MIRROR_TEXT_OPTIONS[settings.mirrorText].color,
-});
+// 헬퍼: 현재 설정의 실제 색상값 추출 ('테마 맞춤'은 현재 테마 팔레트에서 결정)
+export const resolveMirrorColors = (settings: Settings): { bg: string; text: string } => {
+  const palette = THEME_PALETTES[settings.theme] ?? THEME_PALETTES.light;
+  return {
+    bg: MIRROR_BG_OPTIONS[settings.mirrorBg]?.color ?? palette.mirrorBg,
+    text: MIRROR_TEXT_OPTIONS[settings.mirrorText]?.color ?? palette.mirrorText,
+  };
+};

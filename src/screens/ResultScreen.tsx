@@ -4,7 +4,8 @@
 // - 마운트 시 성공 햅틱
 import React, { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/useTheme';
 import { fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import { useStats, formatDuration } from '../context/StatsContext';
@@ -17,6 +18,8 @@ export const ResultScreen: React.FC = () => {
   const { lastSession } = useStats();
   const { navigate } = useNavigator();
   const haptic = useHaptic();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const animatedAccuracy = useCountUp(lastSession?.accuracy ?? 0, 900);
 
   // 마운트 시 결과에 따라 햅틱 (높은 정확도 = success, 낮으면 medium)
@@ -80,7 +83,7 @@ export const ResultScreen: React.FC = () => {
             onPress={() => navigate('training')}
             style={({ pressed }) => [styles.btn, styles.btnPrimary, pressed && styles.pressed]}
           >
-            <Text style={styles.btnText}>다시하기</Text>
+            <Text style={[styles.btnText, styles.btnTextOnAccent]}>다시하기</Text>
           </Pressable>
           <Pressable
             onPress={() => navigate('stats')}
@@ -98,15 +101,18 @@ const Stat: React.FC<{ label: string; value: string; hint?: string }> = ({
   label,
   value,
   hint,
-}) => (
-  <View style={styles.statCard}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value}</Text>
-    {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
-  </View>
-);
+}) => {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
+    </View>
+  );
+};
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.primaryBg,
@@ -209,6 +215,9 @@ const styles = StyleSheet.create({
     color: colors.normalText,
     fontFamily: fonts.medium,
     fontSize: 14,
+  },
+  btnTextOnAccent: {
+    color: colors.onAccent,
   },
   pressed: {
     opacity: 0.85,

@@ -3,7 +3,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { fonts } from '../theme/typography';
-import { colors as palette } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useThemedStyles } from '../theme/useTheme';
 
 type Props = {
   text: string;
@@ -22,6 +23,7 @@ export const MirrorView: React.FC<Props> = ({
   label = 'MIRROR',
   style,
 }) => {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={[styles.area, { backgroundColor: bgColor }, style]}>
       <Text style={styles.label}>{label}</Text>
@@ -43,7 +45,7 @@ export const MirrorView: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   area: {
     flex: 1,
     borderRadius: 16,
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
     transform: [{ scaleX: -1 }], // 핵심: 영역 전체 좌우 반전
   },
   label: {
-    color: palette.mutedText,
+    color: colors.mutedText,
     fontFamily: fonts.medium,
     fontSize: 11,
     letterSpacing: 2,

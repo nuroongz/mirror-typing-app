@@ -2,7 +2,8 @@
 // - 누적 지표 + 레벨별 시도 횟수 + 최근 세션 목록
 import React from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { ThemeColors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/useTheme';
 import { fonts } from '../theme/typography';
 import { TopBar } from '../components/TopBar';
 import { aggregate, formatDuration, useStats } from '../context/StatsContext';
@@ -21,6 +22,7 @@ const formatDate = (ts: number): string => {
 export const StatsScreen: React.FC = () => {
   const { sessions, clearAll } = useStats();
   const { navigate } = useNavigator();
+  const styles = useThemedStyles(makeStyles);
   const agg = aggregate(sessions);
 
   const handleClear = () => {
@@ -114,14 +116,18 @@ const BigStat: React.FC<{ label: string; value: string; accent?: boolean }> = ({
   label,
   value,
   accent,
-}) => (
-  <View style={[styles.bigCard, accent && styles.bigCardAccent]}>
-    <Text style={styles.bigLabel}>{label}</Text>
-    <Text style={[styles.bigValue, accent && { color: colors.mirrorText }]}>{value}</Text>
-  </View>
-);
+}) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={[styles.bigCard, accent && styles.bigCardAccent]}>
+      <Text style={styles.bigLabel}>{label}</Text>
+      <Text style={[styles.bigValue, accent && { color: colors.mirrorText }]}>{value}</Text>
+    </View>
+  );
+};
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.primaryBg,
@@ -258,7 +264,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   startBtnText: {
-    color: colors.normalText,
+    color: colors.onAccent,
     fontFamily: fonts.medium,
     fontSize: 13,
   },
